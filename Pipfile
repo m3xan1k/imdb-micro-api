@@ -9,6 +9,9 @@ flake8 = "*"
 [packages]
 flask = "*"
 flask-marshmallow = "*"
+flask-sqlalchemy = "*"
+marshmallow-sqlalchemy = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.8"
