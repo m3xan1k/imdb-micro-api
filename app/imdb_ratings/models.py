@@ -1,4 +1,4 @@
-from app.api import db
+from app import db
 
 
 class MovieRating(db.Model):

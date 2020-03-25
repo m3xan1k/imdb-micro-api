@@ -1,4 +1,4 @@
-from app.api import ma
+from app import ma
 
 
 class MovieRatingSchema(ma.Schema):

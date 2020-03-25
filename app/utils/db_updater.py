@@ -5,8 +5,8 @@ import io
 
 from tqdm import tqdm
 
-from app.api import MovieRating
-from app.api import db
+from imdb_ratings.models import MovieRating
+from app import db
 
 
 class DatabaseUpdater:

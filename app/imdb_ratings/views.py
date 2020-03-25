@@ -1,8 +1,9 @@
 from flask.views import MethodView
 from flask import request, make_response
+from app import app
 
-from app.models import MovieRating
-from app.serializers import MovieRatingSchema
+from imdb_ratings.models import MovieRating
+from imdb_ratings.serializers import MovieRatingSchema
 
 
 class RatingView(MethodView):
@@ -15,3 +16,6 @@ class RatingView(MethodView):
             return make_response({'error': 'imdb_id is required'}, 400)
         rating = MovieRating.query.filter_by(imdb_id=imdb_id).first()
         return self.rating_schema.dump(rating)
+
+
+app.add_url_rule('/rating/', view_func=RatingView.as_view('rating'))
