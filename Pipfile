@@ -12,6 +12,8 @@ flask-marshmallow = "*"
 flask-sqlalchemy = "*"
 marshmallow-sqlalchemy = "*"
 tqdm = "*"
+celery = "*"
+redis = "*"
 
 [requires]
 python_version = "3.8"
