@@ -2,8 +2,13 @@ from flask.views import MethodView
 from flask import request, make_response
 from app import app
 
-from imdb_ratings.models import MovieRating
-from imdb_ratings.serializers import MovieRatingSchema
+from app.models import MovieRating
+from app.serializers import MovieRatingSchema
+
+
+@app.route('/')
+def index():
+    return '<h1>Flask</h1>'
 
 
 class RatingView(MethodView):

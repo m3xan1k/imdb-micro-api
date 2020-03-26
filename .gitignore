@@ -3,3 +3,4 @@ __pycache__/
 test.db
 title.basics.tsv
 title.ratings.tsv
+.env
