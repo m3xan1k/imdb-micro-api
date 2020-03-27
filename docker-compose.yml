@@ -2,18 +2,78 @@ version: "3.7"
 
 services:
 
-  flask:
-    build: ./flask
-    container_name: flask
-    restart: always
+  project_db:
+    container_name: "imdb_ratings_db"
+    image: postgres
     environment:
-      - APP_NAME=imdb_ratings
+      POSTGRES_PASSWORD: $PGPASSWORD
+      POSTGRES_DB: $PGDATABASE
+    shm_size: '512m'
+    restart: always
+    networks:
+      - db_network
+    volumes:
+      - pgdata_volume:/var/lib/postgresql/data/
+      - ./postgres/dump:/dump
+      - ./postgres/init:/docker-entrypoint-initdb.d
+
+  project_redis:
+    container_name: "imdb_ratings_redis"
+    image: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - redis_network
+    volumes:
+      - redis_volume:/data
+    restart: always
+
+  flask:
+    container_name: imdb_ratings_flask
+    env_file: .env
+    build: ./flask
+    restart: always
     expose:
       - 8080
+    networks:
+      - nginx_network
+    volumes:
+      - ./flask:/code
+    depends_on:
+      - project_db
+      - project_redis
 
   nginx:
     build: ./nginx
-    container_name: nginx
+    container_name: imdb_ratings_nginx
     restart: always
+    environment:
+      - VIRTUAL_HOST=$VIRTUAL_HOST
+    labels:
+      - 'trefik.enable=true'
+      - 'traefik.http.routers.project_nginx-http.rule=Host("$VIRTUAL_HOST")'
+    expose:
+      - 80
     ports:
       - "80:80"
+    networks:
+      - nginx_network
+      - redis_network
+      - db_network
+    depends_on:
+      - project_app
+
+networks:
+  traefik_network:
+    external:
+      name: traefik_network
+  db_network:
+    driver: bridge
+  redis_network:
+    driver: bridge
+  nginx_network:
+    driver: bridge
+
+volumes:
+  pgdata_volume:
+  redis_volume:
+  static_volume:
