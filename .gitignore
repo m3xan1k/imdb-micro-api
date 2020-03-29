@@ -4,3 +4,4 @@ test.db
 title.basics.tsv
 title.ratings.tsv
 .env
+.DS_Store

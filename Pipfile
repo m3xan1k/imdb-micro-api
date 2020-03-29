@@ -16,7 +16,6 @@ celery = "*"
 redis = "*"
 uwsgi = "*"
 psycopg2-binary = "*"
-flask-migrate = "*"
 
 [requires]
 python_version = "3.8"
