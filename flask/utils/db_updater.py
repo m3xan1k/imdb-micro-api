@@ -3,9 +3,7 @@ import urllib.request
 import gzip
 import io
 
-from tqdm import tqdm
-
-from imdb_ratings.models import MovieRating
+from app.models import Rating
 from app import db
 
 
@@ -33,19 +31,19 @@ class DatabaseUpdater:
         reader = csv.reader(csv_file_obj, delimiter='\t')
 
         # make 'cache' from all imdb_ids in local db
-        imdb_ids_query = db.session.query(MovieRating.imdb_id)
+        imdb_ids_query = db.session.query(Rating.imdb_id)
         local_imdb_ids = set([_id for _id, in imdb_ids_query.all()])
 
         # skip csv header
         next(reader)
         movie_ratings = []
-        for row in tqdm(reader):
+        for row in reader:
             # check suck imdb_id already in local db
             if row[0] in local_imdb_ids:
                 continue
 
             # init object, collect them and fill db
-            movie_rating = MovieRating(
+            movie_rating = Rating(
                 imdb_id=row[0],
                 rating=float(row[1]),
                 votes=int(row[2]),

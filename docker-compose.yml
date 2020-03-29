@@ -6,6 +6,7 @@ services:
     container_name: "imdb_ratings_db"
     image: postgres
     environment:
+      POSTGRES_USER: $PGUSER
       POSTGRES_PASSWORD: $PGPASSWORD
       POSTGRES_DB: $PGDATABASE
     shm_size: '512m'
@@ -14,8 +15,6 @@ services:
       - db_network
     volumes:
       - pgdata_volume:/var/lib/postgresql/data/
-      - ./postgres/dump:/dump
-      - ./postgres/init:/docker-entrypoint-initdb.d
 
   imdb_ratings_redis:
     container_name: "imdb_ratings_redis"
@@ -31,11 +30,14 @@ services:
     container_name: imdb_ratings_flask
     env_file: .env
     build: ./flask
+    image: imdb_ratings_flask
     restart: always
     expose:
       - 8080
     networks:
       - nginx_network
+      - db_network
+      - redis_network
     volumes:
       - ./flask:/code
     depends_on:
@@ -49,16 +51,15 @@ services:
     environment:
       - VIRTUAL_HOST=$VIRTUAL_HOST
     labels:
-      - 'trefik.enable=true'
-      - 'traefik.http.routers.imdb_ratings_nginx-http.rule=Host("$VIRTUAL_HOST")'
-    expose:
-      - 80
-    ports:
-      - "80:80"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.metamovies_nginx-https.rule=Host("$VIRTUAL_HOST")'
+      - 'traefik.http.routers.metamovies_nginx-https.tls.certresolver=httpchallenge_0'
+      - 'traefik.http.routers.metamovies_nginx-http.rule=Host("$VIRTUAL_HOST")'
     networks:
       - nginx_network
-      - redis_network
-      - db_network
+      - traefik_network
+    volumes:
+      - ./nginx:/code
     depends_on:
       - imdb_ratings_flask
 
@@ -66,7 +67,7 @@ services:
     container_name: imdb_ratings_celery
     image: imdb_ratings_flask
     env_file: .env
-    command: celery -A configs.celery_init worker -l info
+    command: celery -A celery_init worker -l info -B
     restart: always
     networks:
       - db_network
@@ -78,21 +79,21 @@ services:
       - imdb_ratings_redis
       - imdb_ratings_flask
 
-  imdb_ratings_celery-beat:
-    container_name: imdb_ratings_celery-beat
-    image: imdb_ratings_flask
-    env_file: .env
-    command: celery -A configs.celery_init beat -l info
-    restart: always
-    networks:
-      - db_network
-      - redis_network
-    volumes:
-      - ./flask:/code
-    depends_on:
-      - imdb_ratings_db
-      - imdb_ratings_redis
-      - imdb_ratings_flask
+  # imdb_ratings_celery-beat:
+  #   container_name: imdb_ratings_celery-beat
+  #   image: imdb_ratings_flask
+  #   env_file: .env
+  #   command: celery -A celery_init beat -l info
+  #   restart: always
+  #   networks:
+  #     - db_network
+  #     - redis_network
+  #   volumes:
+  #     - ./flask:/code
+  #   depends_on:
+  #     - imdb_ratings_db
+  #     - imdb_ratings_redis
+  #     - imdb_ratings_flask
 
 networks:
   traefik_network:
